@@ -14,17 +14,38 @@ const client = new ApolloClient({
   cache: new InMemoryCache()
 });
 
-client.query({
-    query: gql`
-      query GetRates {
-        rates(currency: "USD") {
-          rate,
-          name
-        }
-      }
-    `
-  })
-  .then(result => console.log(result));
+interface ExchangeRate {
+  currency: string,
+  rate: number,
+  name: string
+}
+
+const EXCHANGE_RATES = gql`
+  query GetExchangeRates {
+    rates(currency: "USD") {
+      currency
+      rate
+      name
+    }
+  }
+`;
+
+export function ExchangeRates() {
+  const { loading, error, data } = useQuery(EXCHANGE_RATES);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
+
+return data.rates.map(({ currency, rate, name}: ExchangeRate) => (
+  <div key={currency}>
+    <h1>{name}</h1>
+    <p>
+      {currency}: {rate}
+    </p>
+  </div>
+  ));
+}
+
 
 ReactDOM.render(
   <React.StrictMode>
@@ -37,7 +58,4 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.unregister();
